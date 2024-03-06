@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 # rc.local
 #
@@ -11,12 +11,16 @@
 #
 # By default this script does nothing.
 
-# Print the IP address
-_IP=$(hostname -I) || true
-if [ "$_IP" ]; then
-  printf "My IP address is %s\n" "$_IP"
-fi
 echo "13" > /sys/class/gpio/export && echo "out" > /sys/class/gpio/gpio13/direction && echo "1" > /sys/class/gpio/gpio13/value
 insmod /lib/modules/6.1.73-haos-raspi/extra/aw882xx_drv.ko
-/usr/local/m5stack/demo /dev/fb$(cat /proc/fb | grep fb_st7789v | awk '{print $1}') 2>&1 >> /dev/null &
+
+FREAMBUFFER="/dev/fb$(cat /proc/fb | grep fb_st7789v | awk '{print $1}')"
+if [ "$FREAMBUFFER" == "/dev/fb0" ] ; then 
+chvt 7
+echo 0 4 0 7 > /proc/sys/kernel/printk
+echo -e "\033[?25l" > /dev/tty7
+fi
+/usr/local/m5stack/demo $FREAMBUFFER 2>&1 >> /dev/null &
+
+
 exit 0
